@@ -6,20 +6,26 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
+import java.rmi.server.UnicastRemoteObject;
 
-public class ChatServerImpl implements ChatServer {
+public class ChatServerImpl extends UnicastRemoteObject implements ChatServer {
 
     private Listeners listeners;
 
-    public ChatServerImpl() {
+    public ChatServerImpl() throws RemoteException {
         this.listeners = new Listeners();
     }
 
     /**
+     * Notifies to listeners if someone sent message
      *
-     * */
+     * @param name
+     *      Name of sender
+     * @param message
+     *      Message from sender
+     */
     @Override
-    public void sendMessage(String name, String message) throws RemoteException {
+    public synchronized void sendMessage(String name, String message) throws RemoteException {
         this.listeners.notifyListeners(name, message);
     }
 
@@ -41,10 +47,10 @@ public class ChatServerImpl implements ChatServer {
             LocateRegistry.createRegistry(1099);
             ChatServerImpl chatServer = new ChatServerImpl();
             Naming.rebind(name,chatServer);
-        } catch (RemoteException e) {
-            throw new RuntimeException(e);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
+        } catch (RemoteException | MalformedURLException e) {
+            e.printStackTrace();
         }
+
+        System.out.println("Server working...");
     }
 }

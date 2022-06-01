@@ -1,7 +1,6 @@
 package client;
 
 import server.ChatServer;
-import server.ChatServerImpl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,16 +14,17 @@ public class Client {
 
     private String nickname;
     private ChatServer chatServer;
-    private ChatListener chatListener;
+    private ChatListenerImpl chatListener;
 
     public Client() {
 
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         try {
+            System.out.println("Napisite svoje ime:");
             this.nickname = br.readLine();
         } catch (IOException e) {
-            System.err.println(e.getLocalizedMessage());
+            e.printStackTrace();
         }
     }
 
@@ -34,7 +34,7 @@ public class Client {
         try {
             this.chatListener = new ChatListenerImpl(this, this.chatServer);
         } catch (RemoteException e) {
-            System.err.println(e.getLocalizedMessage());
+            e.printStackTrace();
         }
 
         run();
@@ -52,7 +52,12 @@ public class Client {
                 this.chatServer.sendMessage(nickname, message);
             }
         } catch (IOException e) {
-            System.err.println(e.getLocalizedMessage());
+            e.printStackTrace();
+            try {
+                this.chatListener.terminate();
+            } catch (RemoteException ex) {
+                e.printStackTrace();
+            }
             System.exit(-1);
         }
     }
@@ -61,17 +66,13 @@ public class Client {
         String name = "//localhost:1099/chat";
         try {
             this.chatServer = (ChatServer) Naming.lookup(name);
-        } catch (NotBoundException e) {
-            System.err.println(e.getLocalizedMessage());
-        } catch (MalformedURLException e) {
-            System.err.println(e.getLocalizedMessage());
-        } catch (RemoteException e) {
-            System.err.println(e.getLocalizedMessage());
+        } catch (NotBoundException | MalformedURLException | RemoteException e) {
+            e.printStackTrace();
         }
     }
 
     public void receiveMessage(String name, String message) {
-        System.out.println(name + ": " + message);
+        System.out.println(name + ": " + message + "\n>>");
     }
 
     public static void main(String[] args) {
