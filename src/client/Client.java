@@ -23,6 +23,7 @@ public class Client {
         try {
             System.out.println("Napisite svoje ime:");
             this.nickname = br.readLine();
+            System.out.print(">>");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -72,7 +73,7 @@ public class Client {
     }
 
     public void receiveMessage(String name, String message) {
-        System.out.println(name + ": " + message + "\n>>");
+        System.out.print(name + ": " + message + "\n>>");
     }
 
     public static void main(String[] args) {
