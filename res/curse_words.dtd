@@ -1,0 +1,3 @@
+<!ELEMENT list (word*)>
+        <!ELEMENT word (#PCDATA)>
+        <!ATTLIST word nickname CDATA #REQUIRED>
