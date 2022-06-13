@@ -1,19 +1,24 @@
 package server;
 
 import client.ChatListener;
+import server.xml.WordsDOM;
 
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Arrays;
 
 public class ChatServerImpl extends UnicastRemoteObject implements ChatServer {
 
     private Listeners listeners;
 
+    private WordsDOM badWordsRepo;
+
     public ChatServerImpl() throws RemoteException {
         this.listeners = new Listeners();
+        this.badWordsRepo = new WordsDOM();
     }
 
     /**
@@ -26,6 +31,11 @@ public class ChatServerImpl extends UnicastRemoteObject implements ChatServer {
      */
     @Override
     public synchronized void sendMessage(String name, String message) throws RemoteException {
+        if (message.startsWith("/+/"))
+            badWordsRepo.addWord(name, message.split(" ")[0].replace("/+/", ""));
+        else if (message.startsWith("/-/"))
+            badWordsRepo.removeWord(name, message.split(" ")[0].replace("/-/", ""));
+
         this.listeners.notifyListeners(name, message);
     }
 
@@ -42,6 +52,7 @@ public class ChatServerImpl extends UnicastRemoteObject implements ChatServer {
     public static void main(String[] args) {
 
         String name = "chat";
+
 
         try {
             LocateRegistry.createRegistry(1099);

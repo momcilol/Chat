@@ -25,7 +25,6 @@ public class WordsDOM {
 
     public final String filename;
     private Document document;
-
     private Map<String, List<String>> wordMap;
 
     public WordsDOM() {

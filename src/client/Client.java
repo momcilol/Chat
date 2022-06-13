@@ -52,15 +52,19 @@ public class Client {
                 if (message == null || message.equals("")) return;
                 this.chatServer.sendMessage(nickname, message);
             }
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
+        }
+        finally {
             try {
                 this.chatListener.terminate();
             } catch (RemoteException ex) {
-                e.printStackTrace();
+                ex.printStackTrace();
             }
             System.exit(-1);
         }
+
     }
 
     private void connectToServer() {
