@@ -13,6 +13,7 @@ import java.rmi.RemoteException;
 public class Client {
 
     private String nickname;
+
     private ChatServer chatServer;
     private ChatListenerImpl chatListener;
 
@@ -27,6 +28,10 @@ public class Client {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getNickname() {
+        return nickname;
     }
 
     public void start() {

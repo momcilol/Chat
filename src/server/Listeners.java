@@ -4,22 +4,24 @@ import client.ChatListener;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Listeners {
 
-    private List<ChatListener> chatListeners;
+    private Map<String, ChatListener> chatListeners;
 
     public Listeners() {
-        this.chatListeners = new ArrayList<>();
+        this.chatListeners = new HashMap<>();
     }
 
-    public void addChatListener(ChatListener chatListener) {
-        this.chatListeners.add(chatListener);
+    public void addChatListener(String name, ChatListener chatListener) {
+        this.chatListeners.put(name, chatListener);
     }
 
-    public void removeChatListener(ChatListener chatListener) {
-        this.chatListeners.remove(chatListener);
+    public void removeChatListener(String name) {
+        this.chatListeners.remove(name);
     }
 
     public void deleteChatListeners() {
@@ -34,19 +36,29 @@ public class Listeners {
     /**
      * Notifies to listeners if someone sent message
      *
-     * @param name
-     *      Name of sender
-     * @param message
-     *      Message from sender
+     * @param name    Name of sender
+     * @param message Message from sender
      */
     public void notifyListeners(String name, String message) {
-        for (ChatListener cl : chatListeners) {
-            try {
-                cl.receiveMessage(name, message);
-            } catch (RemoteException re) {
-                System.err.println("Chat.server.Listeners.notifyListeners(): " + re);
-                re.printStackTrace();
-            }
+        this.chatListeners.entrySet().stream()
+                .filter(e -> !e.getKey().equals(name))
+                .map(Map.Entry::getValue)
+                .forEach(v -> {
+                    try {
+                        v.receiveMessage(name, message);
+                    } catch (RemoteException re) {
+                        System.err.println("Chat.server.Listeners.notifyListeners(): " + re);
+                        re.printStackTrace();
+                    }
+                });
+    }
+
+    public void commandResponse(String name, String message) {
+        try {
+            this.chatListeners.get(name).receiveMessage(name, message);
+        } catch (RemoteException re) {
+            System.err.println("Chat.server.Listeners.notifyListeners(): " + re);
+            re.printStackTrace();
         }
     }
 

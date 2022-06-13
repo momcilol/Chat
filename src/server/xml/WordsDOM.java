@@ -21,30 +21,32 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class WordsDOM {
+public class WordsDOM implements IWordsXML {
 
     public final String filename;
     private Document document;
     private Map<String, List<String>> wordMap;
 
+
     public WordsDOM() {
-        this.filename = "res/bad_words.xml";
-        loadDocument();
-        this.wordMap = getWords();
+        this("res/bad_words.xml");
     }
+
 
     public WordsDOM(String filename) {
         this.filename = filename;
         loadDocument(filename);
+        this.wordMap = getWords();
     }
+
 
     public static void main(String[] args) {
         WordsDOM app = new WordsDOM();
-        app.loadDocument();
         app.printWords();
         app.addWord("Milos", "drug");
         app.saveDocument();
     }
+
 
     /**
      * Overloading method of {@link #loadDocument(String)}
@@ -52,6 +54,7 @@ public class WordsDOM {
     public void loadDocument() {
         loadDocument(filename);
     }
+
 
     /**
      * Loads XML document from {@code filename}
@@ -68,12 +71,14 @@ public class WordsDOM {
         }
     }
 
+
     /**
      * Overloading method of {@link #saveDocument(String)}
      */
     public void saveDocument() {
         saveDocument(filename);
     }
+
 
     /**
      * Saves XML document to {@code filename}
@@ -101,6 +106,7 @@ public class WordsDOM {
 
     }
 
+
     /**
      * Returns a map of all words in the document,
      * where key is nickname of client that have added that word.
@@ -115,6 +121,7 @@ public class WordsDOM {
 
         return this.wordMap;
     }
+
 
     private void updateMap() {
         Element root = document.getDocumentElement();
@@ -132,37 +139,46 @@ public class WordsDOM {
         }
     }
 
+
     /**
      * If {@code word} is previously added by client with {@code nickname}, it will be removed.
      *
      * @param nickname Nickname of sender (in other parts of project referred as name)
      * @param word     Word that sender wants to remove
+     *
+     * @return boolean Successful
      */
-    public synchronized void removeWord(String nickname, String word) {
+    public synchronized boolean removeWord(String nickname, String word) {
+        boolean successful = false;
         Element root = document.getDocumentElement();
-
         NodeList words = root.getElementsByTagName("word");
 
         for (int i = 0; i < words.getLength(); i++) {
             Element wordElem = (Element) words.item(i);
             if (wordElem.getAttribute("nickname").equals(nickname) && wordElem.getTextContent().equals(word)) {
+                root.removeChild(words.item(i).getPreviousSibling());
                 root.removeChild(words.item(i));
+                successful = true;
                 break;
             }
         }
 
         saveDocument();
         updateMap();
+        return successful;
     }
+
 
     /**
      * Adds {@code word} in xml document and saves file immediately.
      *
-     * @param word
-     * @param nickname
+     * @param word Word that is being added
+     * @param nickname Who adds {@code word}
+     *
+     * @return boolean Successful
      */
-    public void addWord(String nickname, String word) {
-        if (containsWord(word)) return;
+    public synchronized boolean addWord(String nickname, String word) {
+        if (containsWord(word)) return false;
 
         Element root = document.getDocumentElement();
 
@@ -177,17 +193,22 @@ public class WordsDOM {
 
         saveDocument();
         updateMap();
+        return true;
     }
+
 
     public boolean wordWrittenBy(String nickname, String word) {
         Map<String, List<String>> wordMap = getWords();
         return wordMap.containsKey(nickname) && wordMap.get(nickname).contains(word);
     }
 
+
     public boolean containsWord(String word) {
-        return this.wordMap.values().stream().flatMap(list -> list.stream())
+        return this.wordMap.values().stream()
+                .flatMap(List::stream)
                 .anyMatch(s -> s.equalsIgnoreCase(word));
     }
+
 
     private void printWords() {
 

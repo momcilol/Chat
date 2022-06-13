@@ -14,11 +14,11 @@ public class ChatListenerImpl extends UnicastRemoteObject implements ChatListene
         super();
         this.client = client;
         this.chatServer = chatServer;
-        this.chatServer.addListener(this);
+        this.chatServer.addListener(this.client.getNickname() ,this);
     }
 
     public void terminate() throws RemoteException {
-        this.chatServer.removeListener(this);
+        this.chatServer.removeListener(this.client.getNickname());
     }
 
     @Override

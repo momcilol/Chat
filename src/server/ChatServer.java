@@ -9,9 +9,9 @@ public interface ChatServer extends Remote {
 
     void sendMessage(String name, String message) throws RemoteException;
 
-    void addListener(ChatListener chatListener) throws RemoteException;
+    void addListener(String name, ChatListener chatListener) throws RemoteException;
 
-    void removeListener(ChatListener chatListener) throws RemoteException;
+    void removeListener(String name) throws RemoteException;
 
 
 }
