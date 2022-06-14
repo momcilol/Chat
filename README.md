@@ -64,7 +64,7 @@ sledeci DTD:
 <!--ATTLIST rec nadimak CDATA #REQUIRED-->
 ```
 
-Još rešenja:
+Još rešenja
 ------------
 
 (https://github.com/duxanlol/integracija-sistema)
