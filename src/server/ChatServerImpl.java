@@ -4,6 +4,7 @@ import client.ChatListener;
 import org.jetbrains.annotations.NotNull;
 import server.xml.IWordsXML;
 import server.xml.WordsDOM;
+import server.xml.WordsSAX;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,7 +27,13 @@ public class ChatServerImpl extends UnicastRemoteObject implements ChatServer {
 
     public ChatServerImpl(String xmlReader) throws RemoteException {
         this.listeners = new Listeners();
-        this.badWordsRepo = new WordsDOM();
+        if (xmlReader != null && xmlReader.equalsIgnoreCase("s")) {
+            this.badWordsRepo = new WordsSAX();
+            System.out.println("SAX");
+        } else {
+            this.badWordsRepo = new WordsDOM();
+            System.out.println("DOM");
+        }
     }
 
     /**
@@ -42,13 +49,15 @@ public class ChatServerImpl extends UnicastRemoteObject implements ChatServer {
 
         String mess = hideBadWords(message);
 
-        this.listeners.notifyListeners(name, message);
+        this.listeners.notifyListeners(name, mess);
     }
 
     private String hideBadWords(String message) throws RemoteException {
         String regBad = badWordsRepo.getWords().values().stream()
                 .flatMap(List::stream)
-                .collect(Collectors.joining("|", "(", ")"));
+                .collect(Collectors.joining("|", "(?i)(", ")"));
+
+        System.out.println(regBad);
 
         return message.replaceAll(regBad, "*****");
     }

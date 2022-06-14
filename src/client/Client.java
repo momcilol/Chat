@@ -22,7 +22,7 @@ public class Client {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         try {
-            System.out.println("Napisite svoje ime:");
+            System.out.print("Napisite svoje ime: ");
             this.nickname = br.readLine();
             System.out.print(">>");
         } catch (IOException e) {
@@ -52,10 +52,11 @@ public class Client {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         try {
             String message;
-            while (true) {
-                message = br.readLine();
-                if (message == null || message.equals("")) return;
+            message = br.readLine();
+            while (message != null && !message.equals("")) {
+                System.out.print(">>");
                 this.chatServer.sendMessage(nickname, message);
+                message = br.readLine();
             }
         }
         catch (IOException e) {
@@ -67,7 +68,6 @@ public class Client {
             } catch (RemoteException ex) {
                 ex.printStackTrace();
             }
-            System.exit(-1);
         }
 
     }

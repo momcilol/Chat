@@ -12,7 +12,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
@@ -35,8 +34,9 @@ public class WordsDOM implements IWordsXML {
 
     public WordsDOM(String filename) {
         this.filename = filename;
+        this.wordMap = new HashMap<>();
         loadDocument(filename);
-        this.wordMap = getWords();
+        loadMap();
     }
 
 
@@ -58,7 +58,6 @@ public class WordsDOM implements IWordsXML {
 
     /**
      * Loads XML document from {@code filename}
-     *
      */
     public void loadDocument(String filename) {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -69,6 +68,30 @@ public class WordsDOM implements IWordsXML {
         } catch (ParserConfigurationException | IOException | SAXException e) {
             e.printStackTrace();
         }
+    }
+
+    private void loadMap() {
+        Element root = document.getDocumentElement();
+        NodeList words = root.getElementsByTagName("word");
+
+        for (int i = 0; i < words.getLength(); i++) {
+
+            Element word = (Element) words.item(i);
+            String nickname = word.getAttribute("nickname");
+            System.out.println(nickname);
+            this.wordMap.putIfAbsent(nickname, new ArrayList<>());
+            this.wordMap.get(nickname).add(word.getTextContent());
+        }
+    }
+
+    /**
+     * Returns a map of all words in the document,
+     * where key is nickname of client that have added that word.
+     *
+     * @return {@code Map<String, List<String>>}
+     */
+    public Map<String, List<String>> getWords() {
+        return this.wordMap;
     }
 
 
@@ -82,7 +105,6 @@ public class WordsDOM implements IWordsXML {
 
     /**
      * Saves XML document to {@code filename}
-     *
      */
     public void saveDocument(String filename) {
         try {
@@ -108,48 +130,16 @@ public class WordsDOM implements IWordsXML {
 
 
     /**
-     * Returns a map of all words in the document,
-     * where key is nickname of client that have added that word.
-     *
-     * @return {@code Map<String, List<String>>}
-     */
-    public Map<String, List<String>> getWords() {
-        if (this.wordMap != null) return this.wordMap;
-
-        this.wordMap = new HashMap<>();
-        updateMap();
-
-        return this.wordMap;
-    }
-
-
-    private void updateMap() {
-        Element root = document.getDocumentElement();
-        NodeList words = root.getElementsByTagName("word");
-
-        for (int i = 0; i < words.getLength(); i++) {
-
-            Element word = (Element) words.item(i);
-            String nickname = word.getAttribute("nickname");
-
-            if (!this.wordMap.containsKey(word.getAttribute(nickname)))
-                this.wordMap.put(nickname, new ArrayList<>());
-
-            wordMap.get(nickname).add(word.getTextContent());
-        }
-    }
-
-
-    /**
      * If {@code word} is previously added by client with {@code nickname}, it will be removed.
      *
      * @param nickname Nickname of sender (in other parts of project referred as name)
      * @param word     Word that sender wants to remove
-     *
      * @return boolean Successful
      */
     public synchronized boolean removeWord(String nickname, String word) {
-        boolean successful = false;
+        if (!containsWord(word)) return false;
+        if (!wordWrittenBy(nickname, word)) return false;
+
         Element root = document.getDocumentElement();
         NodeList words = root.getElementsByTagName("word");
 
@@ -158,23 +148,22 @@ public class WordsDOM implements IWordsXML {
             if (wordElem.getAttribute("nickname").equals(nickname) && wordElem.getTextContent().equals(word)) {
                 root.removeChild(words.item(i).getPreviousSibling());
                 root.removeChild(words.item(i));
-                successful = true;
                 break;
             }
         }
 
+        this.wordMap.get(nickname).remove(word);
+
         saveDocument();
-        updateMap();
-        return successful;
+        return true;
     }
 
 
     /**
      * Adds {@code word} in xml document and saves file immediately.
      *
-     * @param word Word that is being added
+     * @param word     Word that is being added
      * @param nickname Who adds {@code word}
-     *
      * @return boolean Successful
      */
     public synchronized boolean addWord(String nickname, String word) {
@@ -184,25 +173,38 @@ public class WordsDOM implements IWordsXML {
 
         Element wordElem = document.createElement("word");
         wordElem.setAttribute("nickname", nickname);
-        wordElem.appendChild(document.createTextNode("\n\t\t" + word + "\n\t"));
+        wordElem.appendChild(document.createTextNode(word));
 
-
+        root.removeChild(root.getLastChild());
         root.appendChild(document.createTextNode("\n\t"));
         root.appendChild(wordElem);
         root.appendChild(document.createTextNode("\n"));
 
+        this.wordMap.putIfAbsent(nickname, new ArrayList<>());
+        this.wordMap.get(nickname).add(word);
+
         saveDocument();
-        updateMap();
         return true;
     }
 
 
+    /**
+     * Checks if the {@code word} is written by {@code nickname}
+     *
+     * @param word
+     * @param nickname
+     */
     public boolean wordWrittenBy(String nickname, String word) {
         Map<String, List<String>> wordMap = getWords();
         return wordMap.containsKey(nickname) && wordMap.get(nickname).contains(word);
     }
 
 
+    /**
+     * Checks if the {@code word} is in Document
+     *
+     * @param word
+     */
     public boolean containsWord(String word) {
         return this.wordMap.values().stream()
                 .flatMap(List::stream)
