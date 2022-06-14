@@ -67,5 +67,5 @@ sledeci DTD:
 Još rešenja
 ------------
 
-(https://github.com/duxanlol/integracija-sistema)
+![Dušan Mandić](https://github.com/duxanlol/integracija-sistema)
 
