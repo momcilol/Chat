@@ -24,7 +24,7 @@ public class WordsDOM implements IWordsXML {
 
     public final String filename;
     private Document document;
-    private Map<String, List<String>> wordMap;
+    private final Map<String, List<String>> wordMap;
 
 
     public WordsDOM() {
@@ -39,7 +39,6 @@ public class WordsDOM implements IWordsXML {
         loadMap();
     }
 
-
     public static void main(String[] args) {
         WordsDOM app = new WordsDOM();
         app.printWords();
@@ -47,14 +46,12 @@ public class WordsDOM implements IWordsXML {
         app.saveDocument();
     }
 
-
     /**
      * Overloading method of {@link #loadDocument(String)}
      */
     public void loadDocument() {
         loadDocument(filename);
     }
-
 
     /**
      * Loads XML document from {@code filename}
@@ -94,14 +91,12 @@ public class WordsDOM implements IWordsXML {
         return this.wordMap;
     }
 
-
     /**
      * Overloading method of {@link #saveDocument(String)}
      */
     public void saveDocument() {
         saveDocument(filename);
     }
-
 
     /**
      * Saves XML document to {@code filename}
@@ -121,13 +116,12 @@ public class WordsDOM implements IWordsXML {
             outputStreamWriter.write(content);
             outputStreamWriter.close();
 
-        } catch (ClassCastException | ClassNotFoundException | InstantiationException
-                 | IllegalAccessException | IOException ex) {
+        } catch (ClassCastException | ClassNotFoundException | InstantiationException | IllegalAccessException |
+                 IOException ex) {
             ex.printStackTrace();
         }
 
     }
-
 
     /**
      * If {@code word} is previously added by client with {@code nickname}, it will be removed.
@@ -158,7 +152,6 @@ public class WordsDOM implements IWordsXML {
         return true;
     }
 
-
     /**
      * Adds {@code word} in xml document and saves file immediately.
      *
@@ -187,7 +180,6 @@ public class WordsDOM implements IWordsXML {
         return true;
     }
 
-
     /**
      * Checks if the {@code word} is written by {@code nickname}
      *
@@ -199,18 +191,14 @@ public class WordsDOM implements IWordsXML {
         return wordMap.containsKey(nickname) && wordMap.get(nickname).contains(word);
     }
 
-
     /**
      * Checks if the {@code word} is in Document
      *
      * @param word
      */
     public boolean containsWord(String word) {
-        return this.wordMap.values().stream()
-                .flatMap(List::stream)
-                .anyMatch(s -> s.equalsIgnoreCase(word));
+        return this.wordMap.values().stream().flatMap(List::stream).anyMatch(s -> s.equalsIgnoreCase(word));
     }
-
 
     private void printWords() {
 
